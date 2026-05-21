@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { CompareProvider } from "@/components/CompareProvider";
+import CompareTray from "@/components/CompareTray";
 
 export const metadata: Metadata = {
   title: "SolarFinder UK — Find Local Solar Installers",
@@ -22,7 +24,12 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <CompareProvider>
+          {children}
+          <CompareTray />
+        </CompareProvider>
+      </body>
     </html>
   );
 }

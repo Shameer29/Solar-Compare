@@ -1,6 +1,8 @@
+'use client'
 import Link from "next/link"
 import { MapPin, Phone, Globe, Star, ExternalLink, Navigation } from "lucide-react"
 import type { Company } from "@/lib/places"
+import CompareButton from "./CompareButton"
 
 const AVATAR_COLORS = [
   "from-orange-400 to-rose-500",
@@ -144,7 +146,7 @@ export default function CompanyCard({
         </div>
 
         {/* Action buttons — z-10 so they sit above the card overlay link */}
-        <div className="relative z-10 flex gap-2">
+        <div className="relative z-10 flex gap-2 flex-wrap">
           {company.website ? (
             <a
               href={company.website}
@@ -165,6 +167,7 @@ export default function CompanyCard({
             <ExternalLink className="w-3.5 h-3.5" />
             {company.website ? "Maps" : "View on Maps"}
           </a>
+          <CompareButton company={company} />
         </div>
       </div>
     </article>
