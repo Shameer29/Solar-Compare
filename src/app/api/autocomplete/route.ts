@@ -21,8 +21,21 @@ export async function GET(request: NextRequest) {
       placeId: p.place_id,
     }))
 
-    return NextResponse.json({ predictions })
+    return NextResponse.json({ predictions }, {
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    })
   } catch {
-    return NextResponse.json({ predictions: [] })
+    return NextResponse.json({ predictions: [] }, {
+      headers: { 'Access-Control-Allow-Origin': '*' },
+    })
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    },
+  })
 }
