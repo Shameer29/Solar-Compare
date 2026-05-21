@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { MapPin, Phone, Globe, Star, ExternalLink, Navigation } from "lucide-react"
 import type { Company } from "@/lib/places"
 
@@ -34,6 +35,12 @@ export default function CompanyCard({
       className="group relative bg-white rounded-2xl overflow-hidden border border-slate-100/80 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_48px_rgba(0,0,0,0.12)] transition-all duration-500 hover:-translate-y-1 animate-slide-up"
       style={{ animationDelay: `${index * 70}ms` }}
     >
+      {/* Full-card clickable overlay — sits below action buttons */}
+      <Link
+        href={`/company/${company.id}`}
+        className="absolute inset-0 z-0"
+        aria-label={`View ${company.name} profile`}
+      />
       {/* Top gradient bar */}
       <div className="h-[3px] w-full bg-gradient-to-r from-orange-500 via-amber-400 to-yellow-300" />
 
@@ -118,7 +125,7 @@ export default function CompanyCard({
             <span className="line-clamp-2 text-xs leading-relaxed">{company.address}</span>
           </div>
           {company.phone && (
-            <div className="flex items-center gap-2">
+            <div className="relative z-10 flex items-center gap-2">
               <Phone className="w-3.5 h-3.5 flex-shrink-0 text-slate-300" />
               <a
                 href={`tel:${company.phone.replace(/\s/g, "")}`}
@@ -136,8 +143,8 @@ export default function CompanyCard({
           )}
         </div>
 
-        {/* Action buttons */}
-        <div className="flex gap-2">
+        {/* Action buttons — z-10 so they sit above the card overlay link */}
+        <div className="relative z-10 flex gap-2">
           {company.website ? (
             <a
               href={company.website}

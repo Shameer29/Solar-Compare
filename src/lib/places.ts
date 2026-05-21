@@ -14,6 +14,22 @@ export interface Company {
   initial: string
 }
 
+export interface Review {
+  author: string
+  authorPhoto: string | null
+  rating: number
+  text: string
+  timeAgo: string
+}
+
+export interface CompanyDetails extends Company {
+  reviews: Review[]
+  openingHours: string[]
+  multiplePhotos: (string | null)[]
+  types: string[]
+  editorialSummary?: string
+}
+
 const SERVICE_QUERIES: Record<string, string> = {
   'Solar Panels': 'solar panel installation',
   'Solar & Battery': 'solar panel and battery storage',
@@ -154,5 +170,58 @@ export async function searchSolarCompanies(
     return { companies: enriched, searchCoords }
   } catch (e) {
     return { companies: [], error: 'Connection failed. Please check your network and try again.' }
+  }
+}
+
+export async function getCompanyDetails(placeId: string): Promise<CompanyDetails | null> {
+  const apiKey = process.env.GOOGLE_PLACES_API_KEY
+  if (!apiKey) return null
+
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/place/details/json?place_id=${placeId}&fields=name,formatted_address,formatted_phone_number,website,rating,user_ratings_total,reviews,opening_hours,photos,types,editorial_summary,business_status,url&key=${apiKey}`,
+      { next: { revalidate: 1800 } }
+    )
+    const data = await res.json()
+    const r = data.result
+    if (!r) return null
+
+    const photoRefs: string[] = (r.photos || []).slice(0, 5).map((p: any) => p.photo_reference)
+    const multiplePhotos = await Promise.all(photoRefs.map(ref => resolvePhotoUrl(ref, apiKey)))
+
+    const logoUrl = r.website
+      ? `https://www.google.com/s2/favicons?sz=128&domain_url=${encodeURIComponent(r.website)}`
+      : null
+
+    const reviews: Review[] = (r.reviews || []).map((rv: any) => ({
+      author: rv.author_name || 'Anonymous',
+      authorPhoto: rv.profile_photo_url || null,
+      rating: rv.rating || 0,
+      text: rv.text || '',
+      timeAgo: rv.relative_time_description || '',
+    }))
+
+    return {
+      id: placeId,
+      name: r.name,
+      address: r.formatted_address || '',
+      phone: r.formatted_phone_number || '',
+      website: r.website || '',
+      rating: typeof r.rating === 'number' ? r.rating : null,
+      reviewCount: r.user_ratings_total ?? 0,
+      isOpen: r.opening_hours?.open_now ?? null,
+      photoUrl: multiplePhotos[0] || null,
+      logoUrl,
+      mapsUrl: r.url || `https://www.google.com/maps/place/?q=place_id:${placeId}`,
+      distanceKm: null,
+      initial: r.name?.charAt(0)?.toUpperCase() || 'S',
+      reviews,
+      openingHours: r.opening_hours?.weekday_text || [],
+      multiplePhotos,
+      types: r.types || [],
+      editorialSummary: r.editorial_summary?.overview,
+    }
+  } catch {
+    return null
   }
 }
